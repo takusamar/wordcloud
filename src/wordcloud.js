@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import D3Cloud from 'react-d3-cloud';
-import axios from 'axios';
-import {Button, Box, TextField, Typography} from '@material-ui/core';
+import {Box, Typography, Select, MenuItem} from '@material-ui/core';
 
 const fontSizeMapper = word => Math.pow(word.value, 0.8) * 10;
 const rotate = word => word.value % 2 === 1 ? 0 : 90;
@@ -20,39 +19,51 @@ function countWord(array){
   return wordData;
 }
 
-export default () => {
+export default ({data}) => {
   const [wordData, setWordData] = useState(null);
-  const [url, setUrl] = useState(null);
   const [dataKey, setDataKey] = useState(null);
+  const [cols, setCols] = useState(null);
 
-  async function fetchData() {
-    const res = await axios.get(url);
-    const data = res.data.map((row)=>{
+  const handleChange = (event) => {
+    setDataKey(event.target.value);
+  };
+
+  function parseColumn(data) {
+    const pattern = /\d\. /;
+    const col = Object.keys(data[0]).filter((v) => v.match(pattern));
+    console.log(col);
+    setCols(col);
+  }
+
+  function parseData(data, dataKey) {
+    const rows = data.map((row)=>{
       return row[dataKey];
     });
-    const wordData = countWord(data);
+    const wordData = countWord(rows);
     setWordData(wordData);
   }
   
+  useEffect(()=>{
+    parseColumn(data);
+  },[data]);
+
+  useEffect(()=>{
+    parseData(data, dataKey);
+  }, [data, dataKey]);
+
   return (
     <div>
-      <Typography variant='h4'>wordcloud</Typography>
       <Box m={1} />
-      <TextField
-        value={url}
-        label="JSON Web API" 
-        onChange={e => setUrl(e.target.value)}
-      />
-      <Box m={1} />
-      <TextField
-        value={dataKey}
-        label="data key" 
-        onChange={e => setDataKey(e.target.value)}
-      />
-      <Box m={1} />
-      <Button variant="contained" onClick={() => fetchData()}>
-          Submit
-      </Button>
+
+      {cols &&
+        <Select id="colName" value={dataKey} onChange={handleChange}>
+          {cols.map((v, i) => 
+              <MenuItem key={i} value={v}>{v}</MenuItem>            
+        )}
+        </Select>
+      }
+
+    {dataKey && <Typography variant="h6">{dataKey}</Typography>}
 
       {wordData && <Box>
         <D3Cloud 

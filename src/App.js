@@ -4,11 +4,14 @@ import {Button, Box, TextField, Typography} from '@material-ui/core';
 import WordCloud from './wordcloud';
 
 function App() {
-  const [url, setUrl] = useState(null);
+  const [url, setUrl] = useState('');
   const [data, setData] = useState(null);
+  const [message, setMessage] = useState('');
 
   async function fetchData() {
+    setMessage('loading...');
     const res = await axios.get(url);
+    setMessage('complete.');
     setData(res.data);
   }
   
@@ -25,6 +28,7 @@ function App() {
       <Button variant="contained" onClick={() => fetchData()}>
           Submit
       </Button>
+      <Typography variant='h6'>{message}</Typography>
       { data && <WordCloud data={data} /> }
     </div>
   );
